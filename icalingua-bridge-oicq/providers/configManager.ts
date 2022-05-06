@@ -14,6 +14,7 @@ type Config = {
 
 type UserConfig = {
     account: LoginForm
+    oicqdebug: boolean
 }
 
 const emptyLoginForm: LoginForm = {

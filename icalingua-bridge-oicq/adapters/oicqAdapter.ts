@@ -118,6 +118,7 @@ const eventHandlers = {
             anonymousId: groupId && (<GroupMessageEventData>data).anonymous ? (<GroupMessageEventData>data).anonymous.id : null,
             anonymousflag: groupId && (<GroupMessageEventData>data).anonymous ? (<GroupMessageEventData>data).anonymous.flag : null,
         }
+        if (userConfig.oicqdebug) console.log(`[${roomName}] ${senderName}: ${data.message}\n`, data, message)
 
         let room = await storage.getRoom(roomId)
         if (!room) {
