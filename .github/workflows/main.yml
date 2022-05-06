@@ -255,7 +255,7 @@ jobs:
       - name: makepkg for x86_64
         uses: Icalinguaplusplus/archlinux-package-action@main
         with:
-          flags: '-cfd --noconfirm'
+          flags: "-cfd --noconfirm"
           namcap: false
           updpkgsums: true
 
@@ -282,7 +282,6 @@ jobs:
       - arch-artifacts
       - build-ia32
     steps:
-
       - name: get the assets
         uses: actions/download-artifact@v2
         with:
@@ -303,7 +302,7 @@ jobs:
         uses: Icalinguaplusplus/archlinux-package-action@main
         with:
           carch: i686
-          flags: '-cfd --noconfirm'
+          flags: "-cfd --noconfirm"
           namcap: false
           updpkgsums: true
 
@@ -344,14 +343,13 @@ jobs:
         with:
           name: app-arm64.asar
 
-
       - run: chmod -R 777 .
 
       - name: makepkg for aarch64
         uses: Icalinguaplusplus/archlinux-package-action@main
         with:
           carch: aarch64
-          flags: '-cfd --noconfirm'
+          flags: "-cfd --noconfirm"
           namcap: false
           updpkgsums: true
 
@@ -621,7 +619,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: "16"
       - name: Install Yarn
         run: npm install --global yarn
       - uses: Icalinguaplusplus/gha-yarn-node-cache@master
@@ -638,44 +636,44 @@ jobs:
       arch-version: ${{ steps.version.outputs.arch-version }}
       pkg-name: ${{ steps.version.outputs.pkg-name }}
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Setup Node.js environment
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
 
-    - uses: Icalinguaplusplus/gha-yarn-node-cache@master
-      env:
-        WORKING_DIR: icalingua
-        
-    - id: git-ver
-      run: echo "::set-output name=version::$(git describe --tags | sed 's/v//')"
-      
-    - name: check version and write version info
-      run: node .github/check-version.js
-      id: version
-      env:
-        SHA: ${{ github.sha }}
-        REF: ${{ github.REF }}
-        GIT_VER: ${{ steps.git-ver.outputs.version }}
-        
-    - name: build
-      run: yarn build
-      working-directory: icalingua
+      - uses: Icalinguaplusplus/gha-yarn-node-cache@master
+        env:
+          WORKING_DIR: icalingua
 
-    - name: rename
-      run: ../../.github/winrename.bat
-      working-directory: icalingua/build
-      
-    - uses: actions/upload-artifact@v2
-      name: Upload Icalingua_Windows64.exe
-      with:
-        name: Icalingua_Windows64.exe
-        path: icalingua/build/Icalingua++*.exe
-        if-no-files-found: error
+      - id: git-ver
+        run: echo "::set-output name=version::$(git describe --tags | sed 's/v//')"
+
+      - name: check version and write version info
+        run: node .github/check-version.js
+        id: version
+        env:
+          SHA: ${{ github.sha }}
+          REF: ${{ github.REF }}
+          GIT_VER: ${{ steps.git-ver.outputs.version }}
+
+      - name: build
+        run: yarn build
+        working-directory: icalingua
+
+      - name: rename
+        run: ../../.github/winrename.bat
+        working-directory: icalingua/build
+
+      - uses: actions/upload-artifact@v2
+        name: Upload Icalingua_Windows64.exe
+        with:
+          name: Icalingua_Windows64.exe
+          path: icalingua/build/Icalingua++*.exe
+          if-no-files-found: error
 
   install-macos-x64:
     runs-on: macos-11
@@ -689,7 +687,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: "16"
       - uses: Icalinguaplusplus/gha-yarn-node-cache@master
         env:
           WORKING_DIR: icalingua
@@ -704,44 +702,44 @@ jobs:
       arch-version: ${{ steps.version.outputs.arch-version }}
       pkg-name: ${{ steps.version.outputs.pkg-name }}
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Setup Node.js environment
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
 
-    - uses: Icalinguaplusplus/gha-yarn-node-cache@master
-      env:
-        WORKING_DIR: icalingua
-        
-    - id: git-ver
-      run: echo "::set-output name=version::$(git describe --tags | sed 's/v//')"
-      
-    - name: check version and write version info
-      run: node .github/check-version.js
-      id: version
-      env:
-        SHA: ${{ github.sha }}
-        REF: ${{ github.REF }}
-        GIT_VER: ${{ steps.git-ver.outputs.version }}
-        
-    - name: build
-      run: yarn build
-      working-directory: icalingua
-      
-    - name: rename
-      run: for i in *.dmg;do mv "$i" "${i%.dmg}_x64.dmg" ;done
-      working-directory: icalingua/build
+      - uses: Icalinguaplusplus/gha-yarn-node-cache@master
+        env:
+          WORKING_DIR: icalingua
 
-    - uses: actions/upload-artifact@v2
-      name: Upload Icalingua++_x64.dmg
-      with:
-        name: Icalingua++_x64.dmg
-        path: icalingua/build/Icalingua++*.dmg
-        if-no-files-found: error
+      - id: git-ver
+        run: echo "::set-output name=version::$(git describe --tags | sed 's/v//')"
+
+      - name: check version and write version info
+        run: node .github/check-version.js
+        id: version
+        env:
+          SHA: ${{ github.sha }}
+          REF: ${{ github.REF }}
+          GIT_VER: ${{ steps.git-ver.outputs.version }}
+
+      - name: build
+        run: yarn build
+        working-directory: icalingua
+
+      - name: rename
+        run: for i in *.dmg;do mv "$i" "${i%.dmg}_x64.dmg" ;done
+        working-directory: icalingua/build
+
+      - uses: actions/upload-artifact@v2
+        name: Upload Icalingua++_x64.dmg
+        with:
+          name: Icalingua++_x64.dmg
+          path: icalingua/build/Icalingua++*.dmg
+          if-no-files-found: error
 
   release:
     runs-on: ubuntu-latest
@@ -769,7 +767,6 @@ jobs:
       - name: rename app-x86_64.asar
         run: mv app.asar release/app-x86_64.asar
 
-
       - name: get app-ia32.asar
         uses: actions/download-artifact@v2
         with:
@@ -778,7 +775,6 @@ jobs:
       - name: rename app-ia32.asar
         run: mv app.asar release/app-ia32.asar
 
-
       - name: get app-arm64.asar
         uses: actions/download-artifact@v2
         with:
@@ -786,7 +782,6 @@ jobs:
 
       - name: rename app-arm64.asar
         run: mv app.asar release/app-arm64.asar
-
 
       - name: get aarch64.pkg.tar.zst
         uses: actions/download-artifact@v2
@@ -900,7 +895,7 @@ jobs:
         uses: fnkr/github-action-ghr@ghr-options
         env:
           GHR_PATH: release/
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHR_REPLACE: true
           GHR_TITLE: ${{ needs.build-dist-bundle.outputs.version }}
           GHR_DRAFT: true

@@ -3,6 +3,7 @@ import {
     Client,
     createClient,
     DeviceEventData,
+    DiscussMessageEventData,
     FriendAddEventData,
     FriendDecreaseEventData,
     FriendIncreaseEventData,
@@ -79,23 +80,30 @@ type CookiesDomain =
     | 'qun.qq.com'
     | 'ti.qq.com'
 
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 //region event handlers
 const eventHandlers = {
     async onQQMessage(data: MessageEventData | SyncMessageEventData) {
         if (config.custom) require('../custom').onMessage(data)
         const now = new Date(data.time * 1000)
         const groupId = (data as GroupMessageEventData).group_id
+        const discussId = (data as DiscussMessageEventData).discuss_id
         const senderId = data.sender.user_id
-        let roomId = groupId ? -groupId : data.user_id
+        let roomId = groupId ? -groupId : (discussId ? -discussId : data.user_id)
         if (await storage.isChatIgnored(roomId)) return
         const isSelfMsg = bot.uin === senderId
         let senderName: string
-        if (groupId && (<GroupMessageEventData>data).anonymous)
-            senderName = (<GroupMessageEventData>data).anonymous.name
-        else if (groupId && isSelfMsg) senderName = 'You'
-        else if (groupId) senderName = (data.sender as MemberBaseInfo).card || data.sender.nickname
+        if (groupId && (<GroupMessageEventData>data).anonymous) senderName = (<GroupMessageEventData>data).anonymous.name
+        else if ((groupId || discussId) && isSelfMsg) senderName = 'You'
+        else if (groupId || discussId) senderName = 'card' in data.sender ? data.sender.card : data.sender.nickname
         else senderName = (data.sender as FriendInfo).remark || data.sender.nickname
-        let roomName = 'group_name' in data ? data.group_name : senderName
+        let roomName = 'group_name' in data ? data.group_name : ('discuss_name' in data ? data.discuss_name : senderName)
 
         const message: Message = {
             senderId: senderId,
@@ -103,7 +111,7 @@ const eventHandlers = {
             content: '',
             timestamp: formatDate('hh:mm', now),
             date: formatDate('yyyy/MM/dd', now),
-            _id: data.message_id,
+            _id: data.message_id || uuidv4(),
             role: (data.sender as MemberBaseInfo).role,
             title: groupId && (<GroupMessageEventData>data).anonymous ? '匿名' : (data.sender as MemberBaseInfo).title,
             files: [],
@@ -318,9 +326,9 @@ const eventHandlers = {
             content: data.dismiss
                 ? '群解散了'
                 : (data.member ? (data.member.card ? data.member.card : data.member.nickname) : data.user_id) +
-                  (data.operator_id === data.user_id
-                      ? ' 离开了本群'
-                      : ` 被 ${operator.card ? operator.card : operator.nickname} 踢了`),
+                (data.operator_id === data.user_id
+                    ? ' 离开了本群'
+                    : ` 被 ${operator.card ? operator.card : operator.nickname} 踢了`),
             username: data.member
                 ? data.member.card
                     ? data.member.card
@@ -786,8 +794,8 @@ const adapter = {
         bot.setGroupAnonymousBan(gin, flag, duration)
     },
     async makeForward(fakes: FakeMessage | Iterable<FakeMessage>, dm?: boolean, target?: number): Promise<any> {
-            console.log('警告：使用了未实现的功能，bridge 暂不支持合并转发消息', fakes)
-            clients.messageError('错误：使用 bridge 时暂不支持合并转发消息')
+        console.log('警告：使用了未实现的功能，bridge 暂不支持合并转发消息', fakes)
+        clients.messageError('错误：使用 bridge 时暂不支持合并转发消息')
     },
     reportRead(messageId: string): any {
         bot.reportReaded(messageId)
@@ -1081,7 +1089,7 @@ const adapter = {
                         const content = base64decode(jsonObj.meta.mannounce.text)
                         room.lastMessage.content = `[${title}]`
                         message.content = title + '\n\n' + content
-                    } catch (err) {}
+                    } catch (err) { }
                 }
                 const biliRegex = /(https?:\\?\/\\?\/b23\.tv\\?\/\w*)\??/
                 const zhihuRegex = /(https?:\\?\/\\?\/\w*\.?zhihu\.com\\?\/[^?"=]*)\??/
@@ -1098,7 +1106,7 @@ const adapter = {
                     try {
                         const meta = (<BilibiliMiniApp>jsonObj).meta.detail_1
                         appurl = meta.qqdocurl
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 if (appurl) {
                     room.lastMessage.content = ''
@@ -1117,7 +1125,7 @@ const adapter = {
                             url: previewUrl,
                         }
                         message.files.push(message.file)
-                    } catch (e) {}
+                    } catch (e) { }
 
                     room.lastMessage.content += appurl
                     message.content += appurl
